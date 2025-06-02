@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AAI Inventory Pro</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="styles.css">
+    <!-- Inline Styles for Text Visibility -->
+    <style>
+        input::placeholder {
+            color: #6B7280 !important; /* gray-500 for light mode */
+            opacity: 1 !important;
+        }
+        .dark input::placeholder {
+            color: #9CA3AF !important; /* gray-400 for dark mode */
+            opacity: 1 !important;
+        }
+    </style>
+</head>
+<body class="font-inter bg-gray-100 text-gray-900 transition-colors duration-300 dark:bg-gray-900 dark:text-gray-100">
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed top-4 right-4 z-50 hidden p-4 rounded-lg shadow-lg transition-all duration-300">
+        <div class="flex items-center gap-2">
+            <i id="toastIcon" class="text-lg"></i>
+            <span id="toastMessage"></span>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 hidden">
+        <div class="w-12 h-12 border-4 border-t-transparent border-blue-500 rounded-full animate-spin"></div>
+    </div>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-80 z-40">
+        <div class="bg-white dark:bg-gray-800 p-8 rounded-xl max-w-sm w-full animate-takeoff">
+            <h2 class="text-2xl font-semibold mb-6 text-center text-blue-600 dark:text-blue-400 tracking-wide">
+                <i class="fas fa-lock mr-2"></i> AAI Inventory Pro - Login
+            </h2>
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <input type="text" id="username" value="admin" required placeholder="Username"
+                        class="w-full p-3 bg-transparent border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        style="color: #1F2937; background-color: #FFFFFF; caret-color: #1F2937; color: #F3F4F6 !important; background-color: #1F2937 !important; caret-color: #F3F4F6 !important;">
+                </div>
+                <div>
+                    <input type="password" id="password" value="admin123" required placeholder="Password"
+                        class="w-full p-3 bg-transparent border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        style="color: #1F2937; background-color: #FFFFFF; caret-color: #1F2937; color: #F3F4F6 !important; background-color: #1F2937 !important; caret-color: #F3F4F6 !important;">
+                </div>
+                <button type="button" onclick="login()"
+                    class="w-full radar-button bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-500 transition-all">
+                    Enter System
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bulk Upload Modal -->
+    <div id="bulkUploadModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-80 z-40 hidden">
+        <div class="bg-white dark:bg-gray-800 p-8 rounded-xl max-w-md w-full animate-takeoff">
+            <h2 class="text-2xl font-semibold mb-6 text-center text-blue-600 dark:text-blue-400">
+                <i class="fas fa-upload mr-2"></i> Bulk Upload Items
+            </h2>
+            <form id="bulkUploadForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Upload CSV File (Format: name,quantity,price)</label>
+                    <input type="file" id="bulkUploadFile" accept=".csv" required
+                        class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100"
+                        style="color: #1F2937; background-color: #FFFFFF; caret-color: #1F2937; color: #F3F4F6 !important; background-color: #1F2937 !important; caret-color: #F3F4F6 !important;">
+                </div>
+                <div class="flex gap-4">
+                    <button type="button" onclick="uploadBulkItems()"
+                        class="radar-button bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-500">
+                        Upload
+                    </button>
+                    <button type="button" onclick="closeBulkUploadModal()"
+                        class="radar-button bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-500">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Dashboard -->
+    <div id="dashboard" class="hidden flex min-h-screen">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-white dark:bg-gray-800 shadow-lg p-4 border-r border-gray-200 dark:border-gray-700">
+            <div class="flex items-center gap-2 mb-6">
+                <i class="fas fa-plane text-blue-600 dark:text-blue-400 text-2xl"></i>
+                <h1 class="text-xl font-bold text-blue-600 dark:text-blue-400">AAI Inventory Pro</h1>
+            </div>
+            <nav class="space-y-2">
+                <button onclick="showSection('inventorySection')" class="w-full sidebar-link flex items-center gap-2 p-2 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900">
+                    <i class="fas fa-boxes"></i> Inventory
+                </button>
+                <button onclick="showSection('analyticsSection')" class="w-full sidebar-link flex items-center gap-2 p-2 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900">
+                    <i class="fas fa-chart-line"></i> Analytics
+                </button>
+                <button onclick="toggleDarkMode()" class="w-full sidebar-link flex items-center gap-2 p-2 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900">
+                    <i class="fas fa-moon"></i> Toggle Theme
+                </button>
+                <button onclick="logout()" class="w-full sidebar-link flex items-center gap-2 p-2 rounded-lg text-red-600 hover:bg-red-100 dark:hover:bg-red-900">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-6 overflow-auto">
+            <!-- Dashboard Overview -->
+            <section id="overviewSection" class="mb-6">
+                <h2 class="text-2xl font-semibold mb-4">Dashboard Overview</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-blue dark:bg-gray-800 p-4 rounded-lg shadow-lg">
+                        <h3 class="text-lg font-medium text-gray-700 dark:text-gray-300">Total Items</h3>
+                        <p id="totalItems" class="text-2xl font-bold text-blue-600 dark:text-blue-400">0</p>
+                    </div>
+                    <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg">
+                        <h3 class="text-lg font-medium text-gray-700 dark:text-gray-300">Low Stock Items</h3>
+                        <p id="lowStockItems" class="text-2xl font-bold text-red-600 dark:text-red-400">0</p>
+                    </div>
+                    <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg">
+                        <h3 class="text-lg font-medium text-gray-700 dark:text-gray-300">Last Updated</h3>
+                        <p id="lastUpdated" class="text-lg text-gray-500 dark:text-gray-400">Never</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Inventory Section -->
+            <section id="inventorySection">
+                <!-- Search / Filter -->
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg mb-6">
+                    <div class="flex flex-col md:flex-row gap-4 items-center">
+                        <input id="searchInput" placeholder="🔍 Search by name..."
+                            class="flex-1 p-3 border border-gray-300 dark:border-gray-600 rounded-lg placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            style="color: #1F2937; background-color: #FFFFFF; caret-color: #1F2937; color: #F3F4F6 !important; background-color: #1F2937 !important; caret-color: #F3F4F6 !important;">
+                        <select id="sortSelect" onchange="fetchInventory()"
+                            class="p-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 rounded-lg text-gray-900 dark:text-gray-100">
+                            <option value="id">Sort by ID</option>
+                            <option value="name">Sort by Name</option>
+                            <option value="quantity">Sort by Quantity</option>
+                            <option value="price">Sort by Price</option>
+                        </select>
+                        <select id="orderSelect" onchange="fetchInventory()"
+                            class="p-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 rounded-lg text-gray-900 dark:text-gray-100">
+                            <option value="ASC">Ascending</option>
+                            <option value="DESC">Descending</option>
+                        </select>
+                        <button onclick="searchItems()"
+                            class="radar-button bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-500">
+                            Search
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Add / Update Form -->
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg mb-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-semibold">Add / Update Item</h2>
+                        <button onclick="openBulkUploadModal()" id="bulkUploadBtn"
+                            class="radar-button bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-500">
+                            <i class="fas fa-upload mr-2"></i> Bulk Upload
+                        </button>
+                    </div>
+                    <form id="itemForm" class="space-y-4">
+                        <input type="hidden" id="itemId">
+                        <div class="grid md:grid-cols-3 gap-4">
+                            <input type="text" id="name" required placeholder="Item Name"
+                                class="p-3 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                style="color: #1F2937; background-color: #FFFFFF; caret-color: #1F2937; color: #F3F4F6 !important; background-color: #1F2937 !important; caret-color: #F3F4F6 !important;">
+                            <input type="number" id="quantity" required min="0" placeholder="Quantity"
+                                class="p-3 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                style="color: #1F2937; background-color: #FFFFFF; caret-color: #1F2937; color: #F3F4F6 !important; background-color: #1F2937 !important; caret-color: #F3F4F6 !important;">
+                            <input type="number" id="price" required min="0.01" step="0.01" placeholder="Price (Rupee)"
+                                class="p-3 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                style="color: #1F2937; background-color: #FFFFFF; caret-color: #1F2937; color: #F3F4F6 !important; background-color: #1F2937 !important; caret-color: #F3F4F6 !important;">
+                        </div>
+                        <div class="flex gap-4 mt-4">
+                            <button type="button" onclick="saveItem()"
+                                class="radar-button bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-500">
+                                Save
+                            </button>
+                            <button type="button" onclick="resetForm()"
+                                class="radar-button bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-500">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Inventory Table -->
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-semibold">Inventory List</h2>
+                        <button onclick="exportToCSV()"
+                            class="radar-button bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-500">
+                            Export CSV
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full border-collapse text-sm">
+                            <thead>
+                                <tr class="bg-blue-600 text-white">
+                                    <th class="p-3 text-left">ID</th>
+                                    <th class="p-3 text-left">Name</th>
+                                    <th class="p-3 text-left">Quantity</th>
+                                    <th class="p-3 text-left">Price (Rupee)</th>
+                                    <th class="p-3 text-left">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inventoryBody" class="text-gray-900 dark:text-gray-100"></tbody>
+                        </table>
+                    </div>
+                    <div class="flex flex-col md:flex-row justify-between items-center mt-4 gap-4">
+                        <div class="flex items-center gap-2">
+                            <button id="prevPage" onclick="changePage(-1)" disabled
+                                class="radar-button bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-500">
+                                <i class="fas fa-chevron-left"></i> Prev
+                            </button>
+                            <span id="pageInfo" class="text-gray-700 dark:text-gray-300"></span>
+                            <button id="nextPage" onclick="changePage(1)"
+                                class="radar-button bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-500">
+                                Next <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <label for="goToPage" class="text-gray-700 dark:text-gray-300">Go to Page:</label>
+                            <input type="number" id="goToPage" min="1" class="w-16 p-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100"
+                                style="color: #1F2937; background-color: #FFFFFF; caret-color: #1F2937; color: #F3F4F6 !important; background-color: #1F2937 !important; caret-color: #F3F4F6 !important;">
+                            <button onclick="goToPage()"
+                                class="radar-button bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-500">
+                                Go
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Analytics Section -->
+            <section id="analyticsSection" class="hidden">
+                <h2 class="text-xl font-semibold mb-4">Inventory Analytics</h2>
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
+                    <h3 class="text-lg font-medium mb-4">Low Stock Items (Quantity < 5)</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full border-collapse text-sm">
+                            <thead>
+                                <tr class="bg-blue-600 text-white">
+                                    <th class="p-3 text-left">ID</th>
+                                    <th class="p-3 text-left">Name</th>
+                                    <th class="p-3 text-left">Quantity</th>
+                                    <th class="p-3 text-left">Price (Rupee)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lowStockBody" class="text-gray-900 dark:text-gray-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- JS -->
+    <script src="script.js"></script>
+</body>
+</html>
