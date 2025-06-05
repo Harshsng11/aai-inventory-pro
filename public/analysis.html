@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inventory Analysis</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <nav>
+    <a href="dashboard.html">← Back</a>
+  </nav>
+
+  <main>
+    <h2>Low Stock Chart</h2>
+    <canvas id="lowStockChart" width="600" height="400"></canvas>
+  </main>
+
+  <script src="scripts.js"></script>
+</body>
+</html>
+<script>
+  // Sample data for the low stock chart
+  const lowStockData = [
+    { name: 'Item A', quantity: 5 },
+    { name: 'Item B', quantity: 3 },
+    { name: 'Item C', quantity: 2 },
+    { name: 'Item D', quantity: 1 }
+  ];
+
+  // Prepare data for Chart.js
+  const labels = lowStockData.map(item => item.name);
+  const quantities = lowStockData.map(item => item.quantity);
+
+  // Create the chart
+  const ctx = document.getElementById('lowStockChart').getContext('2d');
+  const lowStockChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Low Stock Items',
+        data: quantities,
+        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+        borderColor: 'rgba(255, 99, 132, 1)',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
