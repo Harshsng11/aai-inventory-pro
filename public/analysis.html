@@ -1,57 +1,43 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Inventory Analysis</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <link rel="stylesheet" href="styles.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inventory Management - Analysis</title>
+  <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-  <nav>
-    <a href="dashboard.html">← Back</a>
-  </nav>
-
-  <main>
-    <h2>Low Stock Chart</h2>
-    <canvas id="lowStockChart" width="600" height="400"></canvas>
-  </main>
-
-  <script src="scripts.js"></script>
+  <div class="glass-header">
+    <h2>Inventory Management</h2>
+    <div class="nav-links">
+      <a href="/public\home.html">Home</a>
+      <a href="/dashboard.html">Dashboard</a>
+      <a href="/analysis.html">Analysis</a>
+      <button id="logout-btn">Logout</button>
+    </div>
+  </div>
+  <div class="glass-container">
+    <h1>Inventory Analysis</h1>
+    <div id="analytics-section">
+      <h2>Inventory Summary</h2>
+      <table id="inventory-table">
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Total Inventory Value</td><td id="total-inventory-value">Loading...</td></tr>
+        </tbody>
+      </table>
+      <h2>Low Stock Items</h2>
+      <ul id="low-stock-list"></ul>
+      <h2>Inventory Status</h2>
+      <div id="inventory-chart"></div> <!-- Added for chart -->
+    </div>
+    <div id="app-message-box" class="hidden"></div>
+  </div>
+  <script src="/script.js"></script>
 </body>
 </html>
-<script>
-  // Sample data for the low stock chart
-  const lowStockData = [
-    { name: 'Item A', quantity: 5 },
-    { name: 'Item B', quantity: 3 },
-    { name: 'Item C', quantity: 2 },
-    { name: 'Item D', quantity: 1 }
-  ];
-
-  // Prepare data for Chart.js
-  const labels = lowStockData.map(item => item.name);
-  const quantities = lowStockData.map(item => item.quantity);
-
-  // Create the chart
-  const ctx = document.getElementById('lowStockChart').getContext('2d');
-  const lowStockChart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: labels,
-      datasets: [{
-        label: 'Low Stock Items',
-        data: quantities,
-        backgroundColor: 'rgba(255, 99, 132, 0.2)',
-        borderColor: 'rgba(255, 99, 132, 1)',
-        borderWidth: 1
-      }]
-    },
-    options: {
-      scales: {
-        y: {
-          beginAtZero: true
-        }
-      }
-    }
-  });
